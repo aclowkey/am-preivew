@@ -3,7 +3,6 @@ module github.com/aclowkey/ampreview
 go 1.14
 
 require (
-	bitbucket.outbrain.com/vis/alertc-api v0.2.0 // indirect
 	github.com/gofiber/cors v0.2.2
 	github.com/gofiber/fiber v1.14.5
 	github.com/gorilla/schema v1.2.0 // indirect
