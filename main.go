@@ -26,7 +26,7 @@ func main() {
 		Alerts: []template.Alert{{
 			Status: "Firing",
 			Labels: map[string]string{
-				"service": "alertc",
+				"service": "test",
 				"env":     "prod",
 				"other":   "value",
 			},
@@ -38,11 +38,11 @@ func main() {
 			EndsAt:   time.Now().Add(72 * time.Hour),
 		}},
 		GroupLabels: template.KV{
-			"service": "alertc",
+			"service": "test",
 			"env":     "prod",
 		},
 		CommonLabels: template.KV{
-			"service": "alertc",
+			"service": "test",
 			"env":     "prod",
 			"other":   "value",
 		},
@@ -56,7 +56,7 @@ func main() {
 
 	app := fiber.New()
 	app.Use(cors.New())
-	app.Static("/", "./web")
+	app.Static("/", "/Users/achaplianka/Dvelop/Personal/Alertmanager-Template-Preview/web")
 	app.Post("/render", func(c *fiber.Ctx) {
 		rr := new(RenderRequest)
 		if err := c.BodyParser(rr); err != nil {
@@ -72,6 +72,7 @@ func main() {
 		res, err := t.ExecuteTextString(rr.Template, data)
 		if err != nil {
 			c.Status(http.StatusInternalServerError).Send(err)
+			return
 		}
 		c.Send(res)
 	})

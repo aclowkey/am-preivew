@@ -5,7 +5,7 @@ $(document).ready(function () {
 
     $.post( "render", { template: template, data: data })
       .done(function( data ) {
-        $('#result').val(JSON.stringify(data))
+        $('#result').val(""+data)
       });
   })
 })
