@@ -3,11 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gofiber/cors"
-	"github.com/gofiber/fiber"
-	"github.com/prometheus/alertmanager/template"
-	"net/http"
+	"io/ioutil"
 	"time"
+
+	"github.com/prometheus/alertmanager/template"
 )
 
 type RenderRequest struct {
@@ -20,64 +19,38 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	d := template.Data{
-		Receiver: "test_receiver",
-		Status:   "firing",
-		Alerts: []template.Alert{{
-			Status: "Firing",
-			Labels: map[string]string{
-				"service": "test",
-				"env":     "prod",
-				"other":   "value",
-			},
-			Annotations: map[string]string{
-				"description":      "Error has happened",
-				"extra_annotation": "My extra annotation",
-			},
-			StartsAt: time.Now(),
-			EndsAt:   time.Now().Add(72 * time.Hour),
-		}},
-		GroupLabels: template.KV{
-			"service": "test",
-			"env":     "prod",
-		},
-		CommonLabels: template.KV{
-			"service": "test",
-			"env":     "prod",
-			"other":   "value",
-		},
-		CommonAnnotations: template.KV{
-			"description": "Error has happened",
-		},
-		ExternalURL: "http://google.com",
-	}
-	b, _ := json.MarshalIndent(d, "", "   ")
-	fmt.Println(string(b))
 
-	app := fiber.New()
-	app.Use(cors.New())
-	app.Static("/", "/Users/achaplianka/Dvelop/Personal/Alertmanager-Template-Preview/web")
-	app.Post("/render", func(c *fiber.Ctx) {
-		rr := new(RenderRequest)
-		if err := c.BodyParser(rr); err != nil {
-			_ = c.JSON(fiber.Map{"Error": err.Error()})
-			return
-		}
+	for {
 		data := new(template.Data)
-		err := json.Unmarshal([]byte(rr.Data), data)
+		d, err := ioutil.ReadFile("test.gotempl")
 		if err != nil {
-			c.Status(http.StatusInternalServerError).Send(err)
-		}
-
-		res, err := t.ExecuteTextString(rr.Template, data)
-		if err != nil {
-			c.Status(http.StatusInternalServerError).Send(err)
+			fmt.Println("Error: ", err)
 			return
 		}
-		c.Send(res)
-	})
-	err = app.Listen("0.0.0.0:3000")
-	if err != nil {
-		panic(err)
+
+		b, err := ioutil.ReadFile("data.json")
+		if err != nil {
+			fmt.Println("Error: ", err)
+			return
+		}
+		err = json.Unmarshal(b, data)
+		if err != nil {
+			fmt.Println("Error: ", err)
+			return
+		}
+
+		res, err := t.ExecuteTextString(string(d), data)
+		if err != nil {
+			fmt.Println("Error: ", err)
+			return
+		}
+		err = ioutil.WriteFile("/tmp/output.html", []byte(res), 0644)
+		if err != nil {
+			fmt.Println("Error: ", err)
+			return
+		}
+		fmt.Println("Done")
+		time.Sleep(5 * time.Second)
 	}
+
 }
